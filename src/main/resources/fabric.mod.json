@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "animecraft",
+  "version": "${version}",
+  "name": "Animecraft",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/animecraft/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "com.leonard.animecraft.client.AnimecraftClient"
+    ],
+    "main": [
+      "com.leonard.animecraft.Animecraft"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
