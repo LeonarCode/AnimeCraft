@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "animecraft:item/kusanagi_blade"
+  }
+}

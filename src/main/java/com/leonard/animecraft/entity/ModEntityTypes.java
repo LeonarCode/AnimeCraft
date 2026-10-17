@@ -20,6 +20,16 @@ public final class ModEntityTypes {
                     .updateInterval(10)
     );
 
+    public static final ResourceKey<EntityType<?>> SHADOW_CLONE_ID = create("shadow_clone");
+
+    public static final EntityType<ShadowCloneEntity> SHADOW_CLONE = register(
+            SHADOW_CLONE_ID,
+            EntityType.Builder.<ShadowCloneEntity>of(ShadowCloneEntity::new, MobCategory.MISC)
+                    .sized(0.6f, 1.95f) // kasing-laki ng manlalaro
+                    .clientTrackingRange(10)
+                    .updateInterval(3)
+    );
+
     private ModEntityTypes() {
     }
 

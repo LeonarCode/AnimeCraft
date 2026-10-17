@@ -28,8 +28,15 @@ public class KunaiItem extends Item implements ProjectileItem {
                 SoundEvents.TRIDENT_THROW, SoundSource.PLAYERS, 0.6F, 1.0F);
 
         if (level instanceof ServerLevel serverLevel) {
-            Projectile.spawnProjectileFromRotation(KunaiEntity::new, serverLevel, itemStack, player,
-                    0.0F, 1.8F, 1.0F);
+            KunaiEntity kunai = Projectile.spawnProjectileFromRotation(KunaiEntity::new, serverLevel, itemStack,
+                    player, 0.0F, 1.8F, 1.0F);
+
+            // Itala kung saang kamay hawak ang kunai, para malaman natin kung alin ang
+            // "kabilang kamay" pagdating/pag-teleport natin sa target.
+            InteractionHand otherHand = (hand == InteractionHand.MAIN_HAND)
+                    ? InteractionHand.OFF_HAND
+                    : InteractionHand.MAIN_HAND;
+            kunai.setArrivalHand(otherHand);
         }
 
         player.awardStat(Stats.ITEM_USED.get(this));
