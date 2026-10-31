@@ -19,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 public class FlameFangItem extends Item {
-    private static final float DAMAGE = 6.0F;
+    private static final float DAMAGE = 10.0F;
     private static final int FIRE_SECONDS = 4;
     private static final double RANGE = 4.5;
     private static final double WIDTH = 2.0;

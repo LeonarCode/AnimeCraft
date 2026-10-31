@@ -21,7 +21,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 public class FrostbindGauntletsItem extends Item {
-    private static final float DAMAGE = 4.0F;
+    private static final float DAMAGE = 8.0F;
     private static final double STRIKE_DISTANCE = 2.0;
     private static final double RADIUS = 3.5;
     private static final int SLOW_DURATION_TICKS = 100; // 5 segundo

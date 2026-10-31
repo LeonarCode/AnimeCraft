@@ -38,6 +38,8 @@ public final class ModItems {
             register("kamui_shard", KamuiItem::new, new Item.Properties().stacksTo(1));
     public static final Item SHADOW_CLONE_SEAL =
             register("shadow_clone_seal", ShadowCloneItem::new, new Item.Properties().stacksTo(1));
+    public static final Item SUSANOO_WARD =
+            register("susanoo_ward", SusanooItem::new, new Item.Properties().stacksTo(1));
 
     private ModItems() { }
     private static ResourceKey<Item> keyOf(String name) {
@@ -64,6 +66,7 @@ public final class ModItems {
                     tab.accept(SHADOWFLAME_BRAND);
                     tab.accept(KAMUI_SHARD);
                     tab.accept(SHADOW_CLONE_SEAL);
+                    tab.accept(SUSANOO_WARD);
                 });
     }
 }

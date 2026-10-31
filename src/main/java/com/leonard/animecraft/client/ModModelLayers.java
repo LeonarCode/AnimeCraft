@@ -11,10 +11,18 @@ public final class ModModelLayers {
     public static final ModelLayerLocation SHADOW_CLONE =
             new ModelLayerLocation(Animecraft.id("shadow_clone"), "main");
 
+    public static final ModelLayerLocation SUSANOO =
+            new ModelLayerLocation(Animecraft.id("susanoo"), "main");
+
     private ModModelLayers() {
     }
 
     public static LayerDefinition createShadowCloneLayer() {
+        MeshDefinition mesh = HumanoidModel.createMesh(CubeDeformation.NONE, 0.0F);
+        return LayerDefinition.create(mesh, 64, 64);
+    }
+
+    public static LayerDefinition createSusanooLayer() {
         MeshDefinition mesh = HumanoidModel.createMesh(CubeDeformation.NONE, 0.0F);
         return LayerDefinition.create(mesh, 64, 64);
     }

@@ -14,5 +14,10 @@ public class AnimecraftClient implements ClientModInitializer {
 
         ModelLayerRegistry.registerModelLayer(ModModelLayers.SHADOW_CLONE, ModModelLayers::createShadowCloneLayer);
         EntityRenderers.register(ModEntityTypes.SHADOW_CLONE, ShadowCloneRenderer::new);
+
+        ModelLayerRegistry.registerModelLayer(ModModelLayers.SUSANOO, ModModelLayers::createSusanooLayer);
+        EntityRenderers.register(ModEntityTypes.SUSANOO, SusanooRenderer::new);
+
+        EntityRenderers.register(ModEntityTypes.SUSANOO_ARROW, ThrownItemRenderer::new);
     }
 }

@@ -19,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 public class CinderclawGauntletsItem extends Item {
-    private static final float DAMAGE = 5.0F;
+    private static final float DAMAGE = 8.0F;
     private static final int FIRE_SECONDS = 5;
     private static final double RANGE = 4.0;
     private static final double ARC_DEGREES = 140.0;

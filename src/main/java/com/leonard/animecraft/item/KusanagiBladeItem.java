@@ -23,7 +23,7 @@ public class KusanagiBladeItem extends Item {
     private static final double DASH_SPEED = 1.6;
     private static final double STRIKE_RANGE = 5.0;
     private static final double STRIKE_WIDTH = 1.2;
-    private static final float DAMAGE = 10.0F; // 5 hearts — malakas dahil de-kidlat
+    private static final float DAMAGE = 12.0F; // 5 hearts — malakas dahil de-kidlat
     private static final int COOLDOWN_TICKS = 40; // 2 segundo
 
     public KusanagiBladeItem(Properties properties) {

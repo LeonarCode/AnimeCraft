@@ -19,7 +19,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class GrappleEffects {
-    private static final float SLASH_DAMAGE = 4.0F; // 2 hearts bawat mob na nadaanan
+    private static final float SLASH_DAMAGE = 8.0F; // 2 hearts bawat mob na nadaanan
 
     private static final Map<UUID, Grapple> ACTIVE = new ConcurrentHashMap<>();
 

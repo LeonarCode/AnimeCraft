@@ -8,6 +8,8 @@ import com.leonard.animecraft.item.GrappleEffects;
 import com.leonard.animecraft.item.KamuiEffects;
 import com.leonard.animecraft.item.ModItems;
 import com.leonard.animecraft.item.ShadowflameEffects;
+import com.leonard.animecraft.entity.SusanooEntity;
+import com.leonard.animecraft.item.SusanooEffects;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
@@ -30,9 +32,12 @@ public class Animecraft implements ModInitializer {
         GrappleEffects.initialize();
         ShadowflameEffects.initialize();
         KamuiEffects.initialize();
+        SusanooEffects.initialize();
+
         FabricDefaultAttributeRegistry.register(ModEntityTypes.SHADOW_CLONE, ShadowCloneEntity.createAttributes());
+        FabricDefaultAttributeRegistry.register(ModEntityTypes.SUSANOO, SusanooEntity.createAttributes());
+
         LOGGER.info("Animecraft loaded with {} abilities across {} styles.",
                 AbilityRegistry.all().size(), PowerStyle.values().length);
-
     }
 }

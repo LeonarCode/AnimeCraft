@@ -30,6 +30,27 @@ public final class ModEntityTypes {
                     .updateInterval(3)
     );
 
+    public static final ResourceKey<EntityType<?>> SUSANOO_ID = create("susanoo");
+
+    public static final EntityType<SusanooEntity> SUSANOO = register(
+            SUSANOO_ID,
+            EntityType.Builder.<SusanooEntity>of(SusanooEntity::new, MobCategory.MISC)
+                    .sized(0.8f, 2.5f) // hitbox lang ito — yung VISUAL na kalakihan ay sa renderer (scale)
+                    .clientTrackingRange(16)
+                    .updateInterval(3)
+                    .fireImmune()
+    );
+
+    public static final ResourceKey<EntityType<?>> SUSANOO_ARROW_ID = create("susanoo_arrow");
+
+    public static final EntityType<SusanooArrowEntity> SUSANOO_ARROW = register(
+            SUSANOO_ARROW_ID,
+            EntityType.Builder.<SusanooArrowEntity>of(SusanooArrowEntity::new, MobCategory.MISC)
+                    .sized(0.5f, 0.5f)
+                    .clientTrackingRange(8)
+                    .updateInterval(5)
+    );
+
     private ModEntityTypes() {
     }
 

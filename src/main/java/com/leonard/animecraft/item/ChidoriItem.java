@@ -23,7 +23,7 @@ import java.util.List;
 
 public class ChidoriItem extends Item {
     private static final double RANGE = 6.0;
-    private static final float DAMAGE = 9.0F;
+    private static final float DAMAGE = 12.0F;
     private static final int COOLDOWN_TICKS = 40;
 
     public ChidoriItem(Properties properties) {

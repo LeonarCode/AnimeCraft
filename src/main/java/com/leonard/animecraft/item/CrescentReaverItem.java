@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 public class CrescentReaverItem extends Item {
-    private static final float DAMAGE = 7.0F;
+    private static final float DAMAGE = 12.0F;
     private static final double RANGE = 12.0;
     private static final double WIDTH = 1.5;
     private static final int COOLDOWN_TICKS = 50;

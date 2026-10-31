@@ -19,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 
 public class HanamaiBladeItem extends Item {
-    private static final float DAMAGE = 5.0F;
+    private static final float DAMAGE = 10.0F;
     private static final double RADIUS = 3.5;
     private static final int COOLDOWN_TICKS = 30;
 
