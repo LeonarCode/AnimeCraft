@@ -1,11 +1,14 @@
 package com.leonard.animecraft.entity;
 
 import com.leonard.animecraft.item.ModItems;
+import com.leonard.animecraft.item.ShadowflameEffects;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -18,6 +21,10 @@ import java.util.List;
 public class SusanooArrowEntity extends ThrowableItemProjectile {
     private static final float EXPLOSION_POWER = 3.0F;
     private static final float BONUS_DAMAGE = 18.0F;
+
+    // Kapareho ng BURN_DURATION_TICKS ng ShadowflameBrandItem (5 segundo) — dahil pareho
+    // namang si Amaterasu ang pinagmulan ng apoy na ito.
+    private static final int AMATERASU_BURN_TICKS = 100;
 
     public SusanooArrowEntity(EntityType<? extends ThrowableItemProjectile> type, Level level) {
         super(type, level);
@@ -33,7 +40,10 @@ public class SusanooArrowEntity extends ThrowableItemProjectile {
 
     @Override
     protected Item getDefaultItem() {
-        return ModItems.SUSANOO_WARD;
+        // Dedikadong "arrow head" item lang ito (may sariling 3D shaft model, hindi flat
+        // icon) — hiwalay sa Susanoo Ward na hawak ng player, para tunay na mukhang
+        // pinana ang lumilipad, hindi parang tinapong tool.
+        return ModItems.SUSANOO_ARROW_HEAD;
     }
 
     @Override
@@ -63,7 +73,22 @@ public class SusanooArrowEntity extends ThrowableItemProjectile {
             DamageSource explosionDamage = serverLevel.damageSources().thrown(this, getOwner());
             for (LivingEntity victim : victims) {
                 victim.hurtServer(serverLevel, explosionDamage, BONUS_DAMAGE);
+
+                // Amaterasu/Shadowflame burn sa lahat ng nasabugan — parehong mekanismo
+                // gamit ng ShadowflameBrandItem (kumakalat na purple Soul Fire + extra
+                // damage-over-time), hindi na lang normal/ordinaryong apoy.
+                if (getOwner() instanceof Player ownerPlayer) {
+                    ShadowflameEffects.apply(victim, ownerPlayer, AMATERASU_BURN_TICKS);
+                }
             }
+
+            // Kahit walang natamaang kalaban (listahan ng victims ay walang laman), mag-iiwan
+            // pa rin ng Amaterasu fire sa mismong lugar ng pagsabog.
+            if (getOwner() instanceof Player ownerPlayer) {
+                ShadowflameEffects.igniteArea(serverLevel, BlockPos.containing(hitResult.getLocation()),
+                        ownerPlayer, AMATERASU_BURN_TICKS);
+            }
+
             serverLevel.sendParticles(ParticleTypes.EXPLOSION_EMITTER, x, y, z, 1, 0, 0, 0, 0);
             this.discard();
         }

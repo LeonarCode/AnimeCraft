@@ -24,8 +24,9 @@ public final class ShadowflameEffects {
     private static final DustParticleOptions DARK_FLAME = new DustParticleOptions(0x2B0033, 1.6F);
     private static final float BURN_DAMAGE_PER_SECOND = 3.0F; // mas mataas kaysa normal na fire tick damage
     private static final int GROUND_FIRE_RADIUS = 2;
-    private static final int MAX_SPREAD_FIRES = 24; // takip sa kalat ng BAWAT target, para hindi sumabog ang laki
-    private static final int GLOBAL_MAX_FIRES = 48; // takip sa KABUUAN, kahit maraming kalaban ang na-brand
+    private static final int GROUND_SEARCH_DEPTH = 4; // ilang blocks pababa maghahanap ng matibay na sahig
+    private static final int MAX_SPREAD_FIRES = 24; // takip sa kalat ng BAWAT burn, para hindi sumabog ang laki
+    private static final int GLOBAL_MAX_FIRES = 48; // takip sa KABUUAN, kahit marami nang na-brand/na-ignite
     private static final int LINGER_TICKS = 100; // 5 segundo bago talaga mawala ang ground fire
     private static final Map<UUID, Burn> ACTIVE = new ConcurrentHashMap<>();
     private static int globalFireCount = 0;
@@ -33,6 +34,10 @@ public final class ShadowflameEffects {
     private ShadowflameEffects() {
     }
 
+    /**
+     * Para sa isang tiyak na buhay na target (hal. tinamaan ng Shadowflame Brand o nasabugan
+     * ng Susanoo arrow) — may damage-over-time at sumusunod na ground fire.
+     */
     public static void apply(LivingEntity target, Player source, int durationTicks) {
         Burn burn = new Burn(target, source, durationTicks);
 
@@ -48,6 +53,24 @@ public final class ShadowflameEffects {
                 && serverLevel.getGameRules().get(GameRules.MOB_GRIEFING)) {
             burn.igniteGround(serverLevel);
         }
+    }
+
+    /**
+     * Pareho ng apply(...) pero WALANG kinakailangang target na buhay na nilalang — gamitin
+     * ito kapag gusto nating mag-iwan ng Amaterasu fire sa isang lugar (hal. explosion site
+     * ng Susanoo arrow) kahit walang natamaang kalaban doon. Parehong ground-fire/spread/
+     * linger na mekanismo ang ginagamit nito, walang custom damage-over-time lang (ang
+     * mismong Soul Fire blocks na ang bahalang manakit sa kahit sinong tatapak dito, parang
+     * normal na fire block).
+     */
+    public static void igniteArea(ServerLevel level, BlockPos center, Player source, int durationTicks) {
+        if (!level.getGameRules().get(GameRules.MOB_GRIEFING)) {
+            return;
+        }
+
+        Burn burn = new Burn(level, center, source, durationTicks);
+        ACTIVE.put(UUID.randomUUID(), burn);
+        burn.igniteGround(level);
     }
 
     public static void initialize() {
@@ -78,7 +101,15 @@ public final class ShadowflameEffects {
     }
 
     private static final class Burn {
+        // Kapag may target (galing sa apply()): plain humamig entity ito. Kapag null (galing
+        // sa igniteArea()): "area-only" na burn, walang partikular na kalaban.
         private final LivingEntity target;
+
+        // Ginagamit LANG kapag target == null, dahil wala tayong entity na pagkukunan ng
+        // level/posisyon sa ganoong kaso.
+        private final ServerLevel areaLevel;
+        private final BlockPos areaPos;
+
         private final Player source;
         private final List<FireSite> groundFire = new ArrayList<>();
         private int ticksLeft;
@@ -86,12 +117,22 @@ public final class ShadowflameEffects {
 
         private Burn(LivingEntity target, Player source, int ticksLeft) {
             this.target = target;
+            this.areaLevel = null;
+            this.areaPos = null;
+            this.source = source;
+            this.ticksLeft = ticksLeft;
+        }
+
+        private Burn(ServerLevel level, BlockPos pos, Player source, int ticksLeft) {
+            this.target = null;
+            this.areaLevel = level;
+            this.areaPos = pos;
             this.source = source;
             this.ticksLeft = ticksLeft;
         }
 
         private void igniteGround(ServerLevel serverLevel) {
-            BlockPos center = target.blockPosition();
+            BlockPos center = (target != null) ? target.blockPosition() : areaPos;
 
             for (int dx = -GROUND_FIRE_RADIUS; dx <= GROUND_FIRE_RADIUS; dx++) {
                 for (int dz = -GROUND_FIRE_RADIUS; dz <= GROUND_FIRE_RADIUS; dz++) {
@@ -114,18 +155,32 @@ public final class ShadowflameEffects {
             return false;
         }
 
-        private boolean tryIgniteEmpty(ServerLevel serverLevel, BlockPos pos) {
-            if (groundFire.size() >= MAX_SPREAD_FIRES || globalFireCount >= GLOBAL_MAX_FIRES
-                    || !serverLevel.isEmptyBlock(pos) || isTracked(pos)) {
+        private boolean tryIgniteEmpty(ServerLevel serverLevel, BlockPos columnPos) {
+            if (groundFire.size() >= MAX_SPREAD_FIRES || globalFireCount >= GLOBAL_MAX_FIRES) {
                 return false;
             }
 
-            BlockPos below = pos.below();
-            if (isTracked(below) || !serverLevel.getBlockState(below).isFaceSturdy(serverLevel, below, Direction.UP)) {
-                return false;
+            // Maghanap pababa ng ilang blocks (hindi lang eksaktong parehong taas) para sa
+            // unang bakanteng puwesto na may matibay na sahig sa ibaba. Kailangan ito lalo na
+            // sa Susanoo arrow dahil may crater na mula sa explosion bago pa dumating dito —
+            // kaya hindi na siguradong intact ang lupa sa orihinal na taas.
+            for (int dy = 0; dy >= -GROUND_SEARCH_DEPTH; dy--) {
+                BlockPos pos = columnPos.offset(0, dy, 0);
+                if (isTracked(pos) || !serverLevel.isEmptyBlock(pos)) {
+                    continue;
+                }
+
+                BlockPos below = pos.below();
+                if (isTracked(below)) {
+                    continue;
+                }
+
+                if (serverLevel.getBlockState(below).isFaceSturdy(serverLevel, below, Direction.UP)) {
+                    return placeSoulFire(serverLevel, pos, below);
+                }
             }
 
-            return placeSoulFire(serverLevel, pos, below);
+            return false;
         }
 
         private boolean placeSoulFire(ServerLevel serverLevel, BlockPos firePos, BlockPos groundPos) {
@@ -172,34 +227,52 @@ public final class ShadowflameEffects {
         }
 
         private boolean tick() {
-            if (target.isAlive() && ticksLeft-- > 0) {
-                // Panatilihing may normal fire visual bilang base (hindi natin mababago yung kulay
-                // ng "nasusunog" overlay sa katawan nang walang mixin), pero yung sariling dark
-                // particles + damage + purple na ground fire (Soul Fire, re-textured) natin ang
-                // nagpapakita ng "cursed" na bersyon.
-                target.igniteForSeconds(2);
+            if (target != null) {
+                // === Entity-targeted na burn (galing sa apply()) ===
+                if (target.isAlive() && ticksLeft-- > 0) {
+                    // Panatilihing may normal fire visual bilang base (hindi natin mababago yung
+                    // kulay ng "nasusunog" overlay sa katawan nang walang mixin), pero yung
+                    // sariling dark particles + damage + purple na ground fire (Soul Fire,
+                    // re-textured) natin ang nagpapakita ng "cursed" na bersyon.
+                    target.igniteForSeconds(2);
 
-                if (target.level() instanceof ServerLevel serverLevel) {
-                    if (ticksLeft % 20 == 0) {
-                        DamageSource burnSource = serverLevel.damageSources().playerAttack(source);
-                        target.hurtServer(serverLevel, burnSource, BURN_DAMAGE_PER_SECOND);
+                    if (target.level() instanceof ServerLevel serverLevel) {
+                        if (ticksLeft % 20 == 0) {
+                            DamageSource burnSource = serverLevel.damageSources().playerAttack(source);
+                            target.hurtServer(serverLevel, burnSource, BURN_DAMAGE_PER_SECOND);
+                        }
+
+                        double x = target.getX();
+                        double y = target.getY() + target.getBbHeight() * 0.5;
+                        double z = target.getZ();
+                        serverLevel.sendParticles(DARK_FLAME, x, y, z, 4, 0.3, 0.4, 0.3, 0.02);
+
+                        if (ticksLeft % 10 == 0) {
+                            trySpread(serverLevel);
+                        }
                     }
 
-                    double x = target.getX();
-                    double y = target.getY() + target.getBbHeight() * 0.5;
-                    double z = target.getZ();
-                    serverLevel.sendParticles(DARK_FLAME, x, y, z, 4, 0.3, 0.4, 0.3, 0.02);
+                    return true;
+                }
+            } else {
+                // === Area-only na burn (galing sa igniteArea()), walang target na entity ===
+                if (ticksLeft-- > 0) {
+                    double x = areaPos.getX() + 0.5;
+                    double y = areaPos.getY() + 0.5;
+                    double z = areaPos.getZ() + 0.5;
+                    areaLevel.sendParticles(DARK_FLAME, x, y, z, 4, 1.0, 0.4, 1.0, 0.02);
 
                     if (ticksLeft % 10 == 0) {
-                        trySpread(serverLevel);
+                        trySpread(areaLevel);
                     }
-                }
 
-                return true;
+                    return true;
+                }
             }
 
-            // Patay na o naubusan na ng oras ang target, pero hayaan munang magningas ng ilang
-            // segundo yung ground fire bago talaga papawiin — para hindi biglaan mawala.
+            // Patay na o naubusan na ng oras ang target (o natapos na ang area burn), pero
+            // hayaan munang magningas ng ilang segundo yung ground fire bago talaga papawiin —
+            // para hindi biglaan mawala.
             if (lingerLeft-- > 0) {
                 return true;
             }
@@ -213,7 +286,11 @@ public final class ShadowflameEffects {
                 return; // naka-extinguish na dati (hal. na-re-brand yung target), iwas double-count
             }
 
-            if (target.level() instanceof ServerLevel serverLevel) {
+            ServerLevel serverLevel = (target != null)
+                    ? (target.level() instanceof ServerLevel sl ? sl : null)
+                    : areaLevel;
+
+            if (serverLevel != null) {
                 for (FireSite site : groundFire) {
                     if (serverLevel.getBlockState(site.firePos()).is(Blocks.SOUL_FIRE)) {
                         serverLevel.removeBlock(site.firePos(), false);

@@ -40,6 +40,13 @@ public final class ModItems {
             register("shadow_clone_seal", ShadowCloneItem::new, new Item.Properties().stacksTo(1));
     public static final Item SUSANOO_WARD =
             register("susanoo_ward", SusanooItem::new, new Item.Properties().stacksTo(1));
+    public static final Item SUSANOO_ARROW_HEAD = register("susanoo_arrow_head", Item::new, new Item.Properties());
+    public static final Item MOON_GOD_DREAM =
+            register("moon_god_dream", MoonGodDreamItem::new, new Item.Properties().stacksTo(1));
+    public static final Item DIVINE_REPULSION =
+            register("divine_repulsion", DivineRepulsionItem::new, new Item.Properties().stacksTo(1));
+    public static final Item GRAVITY_TOMB =
+            register("gravity_tomb", GravityTombItem::new, new Item.Properties().stacksTo(1));
 
     private ModItems() { }
     private static ResourceKey<Item> keyOf(String name) {
@@ -67,6 +74,9 @@ public final class ModItems {
                     tab.accept(KAMUI_SHARD);
                     tab.accept(SHADOW_CLONE_SEAL);
                     tab.accept(SUSANOO_WARD);
+                    tab.accept(MOON_GOD_DREAM);
+                    tab.accept(DIVINE_REPULSION);
+                    tab.accept(GRAVITY_TOMB);
                 });
     }
 }

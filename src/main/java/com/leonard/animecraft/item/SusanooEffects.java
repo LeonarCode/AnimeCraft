@@ -11,7 +11,9 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -34,6 +36,7 @@ public final class SusanooEffects {
     private static final double LOOKUP_RADIUS = 8.0;
     private static final int SWEEP_LENGTH = 4; // ilang blocks pasulong ang hiwa
     private static final double SWEEP_WIDTH = 2.5; // kalapad ng arc ng particles (kaliwa-kanan)
+    private static final float SWEEP_DAMAGE = 10.0F; // bonus damage ng Susanoo sword sweep mismo
 
     private SusanooEffects() {
     }
@@ -43,9 +46,7 @@ public final class SusanooEffects {
         AttackEntityCallback.EVENT.register(SusanooEffects::onAttack);
     }
 
-    private static boolean redirectDamage(net.minecraft.world.entity.LivingEntity entity,
-                                          net.minecraft.world.damagesource.DamageSource source,
-                                          float amount) {
+    private static boolean redirectDamage(LivingEntity entity, DamageSource source, float amount) {
         if (!(entity instanceof ServerPlayer player)) {
             return true;
         }
@@ -107,6 +108,18 @@ public final class SusanooEffects {
             Vec3 point = swingCenter.add(right.scale(lateral));
             level.sendParticles(ParticleTypes.SWEEP_ATTACK, point.x, point.y, point.z, 1, 0, 0, 0, 0);
             level.sendParticles(ParticleTypes.CRIT, point.x, point.y, point.z, 2, 0.1, 0.1, 0.1, 0.02);
+        }
+
+        // Bonus damage ng Susanoo sword sweep mismo — bukod pa ito sa normal na vanilla
+        // damage ng hawak mong weapon, dahil ang kalaban ng Susanoo guardian ang dapat
+        // sumakit, hindi lang yung kahit anong kutsilyo na hawak ng player.
+        AABB sweepArea = new AABB(eye, eye.add(look.scale(SWEEP_LENGTH)))
+                .inflate(SWEEP_WIDTH, 1.5, SWEEP_WIDTH);
+        List<LivingEntity> victims = level.getEntitiesOfClass(LivingEntity.class, sweepArea,
+                entity -> entity != player && entity.isAlive());
+        DamageSource sweepDamage = level.damageSources().playerAttack(player);
+        for (LivingEntity victim : victims) {
+            victim.hurtServer(level, sweepDamage, SWEEP_DAMAGE);
         }
 
         level.playSound(null, player.getX(), player.getY(), player.getZ(),

@@ -105,7 +105,7 @@ public final class SusanooItem extends Item {
         level.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.TRIDENT_THROW, SoundSource.PLAYERS, 1.0F, 0.5F);
 
-        ItemStack dummyStack = new ItemStack(ModItems.SUSANOO_WARD);
+        ItemStack dummyStack = new ItemStack(ModItems.SUSANOO_ARROW_HEAD);
         Projectile.spawnProjectileFromRotation(SusanooArrowEntity::new, level, dummyStack,
                 player, 0.0F, 2.2F, 0.5F);
     }
